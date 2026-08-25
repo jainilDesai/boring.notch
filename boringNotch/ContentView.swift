@@ -37,6 +37,7 @@ struct ContentView: View {
     @Namespace var albumArtNamespace
 
     @Default(.showNotHumanFace) var showNotHumanFace
+    @Default(.selectedMood) var selectedMood
 
     // Use standardized animations from StandardAnimations enum
     private let animationSpring = StandardAnimations.interactive
@@ -228,6 +229,14 @@ struct ContentView: View {
                             }
                         }
                         .keyboardShortcut(KeyEquivalent(","), modifiers: .command)
+                        if showNotHumanFace {
+                            Divider()
+                            Picker("Face mood", selection: $selectedMood) {
+                                ForEach(Mood.allCases) { mood in
+                                    Text(mood.rawValue.capitalized).tag(mood)
+                                }
+                            }
+                        }
                         //                    Button("Edit") { // Doesnt work....
                         //                        let dn = DynamicNotch(content: EditPanelView())
                         //                        dn.toggle()
