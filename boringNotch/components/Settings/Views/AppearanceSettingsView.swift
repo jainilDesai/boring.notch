@@ -75,7 +75,7 @@ struct Appearance: View {
                 }
                 Picker("Face mood", selection: $selectedMood) {
                     ForEach(Mood.allCases) { mood in
-                        Text(mood.localizedString)
+                        Text(mood.localizedString).tag(mood)
                     }
                 }
                 .disabled(!showNotHumanFace)

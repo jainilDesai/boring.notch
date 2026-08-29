@@ -158,16 +158,19 @@ enum Mood: String, CaseIterable, Identifiable, Defaults.Serializable {
 
     var localizedString: String {
         switch self {
+        // English text as the key, not a symbolic one: a localization that lacks
+        // the key renders the key itself, so a symbolic key shows as "mood_happy"
+        // under partial translations (en-GB is 169 of 224 keys).
         case .happy:
-            return NSLocalizedString("mood_happy", comment: "Face mood option: happy")
+            return NSLocalizedString("Happy", comment: "Face mood option: happy")
         case .neutral:
-            return NSLocalizedString("mood_neutral", comment: "Face mood option: neutral")
+            return NSLocalizedString("Neutral", comment: "Face mood option: neutral")
         case .sad:
-            return NSLocalizedString("mood_sad", comment: "Face mood option: sad")
+            return NSLocalizedString("Sad", comment: "Face mood option: sad")
         case .wink:
-            return NSLocalizedString("mood_wink", comment: "Face mood option: winking")
+            return NSLocalizedString("Wink", comment: "Face mood option: winking")
         case .surprised:
-            return NSLocalizedString("mood_surprised", comment: "Face mood option: surprised")
+            return NSLocalizedString("Surprised", comment: "Face mood option: surprised")
         }
     }
 }
