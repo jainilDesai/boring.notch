@@ -247,7 +247,7 @@ struct ContentView: View {
                             Divider()
                             Picker("Face mood", selection: $selectedMood) {
                                 ForEach(Mood.allCases) { mood in
-                                    Text(mood.rawValue.capitalized).tag(mood)
+                                    Text(mood.localizedString).tag(mood)
                                 }
                             }
                         }

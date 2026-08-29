@@ -11,6 +11,8 @@ import SwiftUI
 struct Appearance: View {
     @ObservedObject var coordinator = BoringViewCoordinator.shared
     @Default(.sliderColor) var sliderColor
+    @Default(.selectedMood) var selectedMood
+    @Default(.showNotHumanFace) var showNotHumanFace
 
     let icons: [String] = ["logo2"]
     @State private var selectedIcon: String = "logo2"
@@ -71,6 +73,12 @@ struct Appearance: View {
                 Defaults.Toggle(key: .showNotHumanFace) {
                     Text("Show cool face animation while inactive")
                 }
+                Picker("Face mood", selection: $selectedMood) {
+                    ForEach(Mood.allCases) { mood in
+                        Text(mood.localizedString)
+                    }
+                }
+                .disabled(!showNotHumanFace)
             } header: {
                 HStack {
                     Text("Additional features")
