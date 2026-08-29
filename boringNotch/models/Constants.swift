@@ -153,8 +153,23 @@ enum Mood: String, CaseIterable, Identifiable, Defaults.Serializable {
     case sad
     case wink
     case surprised
-    
+
     var id: String { rawValue }
+
+    var localizedString: String {
+        switch self {
+        case .happy:
+            return NSLocalizedString("mood_happy", comment: "Face mood option: happy")
+        case .neutral:
+            return NSLocalizedString("mood_neutral", comment: "Face mood option: neutral")
+        case .sad:
+            return NSLocalizedString("mood_sad", comment: "Face mood option: sad")
+        case .wink:
+            return NSLocalizedString("mood_wink", comment: "Face mood option: winking")
+        case .surprised:
+            return NSLocalizedString("mood_surprised", comment: "Face mood option: surprised")
+        }
+    }
 }
 
 // Sneak peek styles for selection in settings
