@@ -25,6 +25,7 @@ class BoringViewModel: NSObject, ObservableObject {
     @Published var edgeAutoOpenActive: Bool = false
     @Published var isHoveringCalendar: Bool = false
     @Published var isBatteryPopoverActive: Bool = false
+    @Published var isSystemMonitorPopoverActive: Bool = false
 
     @Published var screenUUID: String?
 
@@ -204,6 +205,7 @@ class BoringViewModel: NSObject, ObservableObject {
         self.closedNotchSize = self.notchSize
         self.notchState = .closed
         self.isBatteryPopoverActive = false
+        self.isSystemMonitorPopoverActive = false
         if self.coordinator.shouldShowSneakPeek(on: self.screenUUID) {
             self.coordinator.toggleSneakPeek(status: false, type: .music, targetScreenUUID: self.screenUUID)
         }
