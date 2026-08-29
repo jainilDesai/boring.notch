@@ -5,10 +5,14 @@
 //
 
 import SwiftUI
+import Defaults
 
 struct MinimalFaceFeatures: View {
     @State private var isBlinking = false
     @State private var blinkTask: Task<Void, Never>? = nil
+    @Default(.selectedMood) private var selectedMood
+    // Brief pulse that accentuates mouth curvature when the mood changes
+    @State private var mouthPulse: CGFloat = 0
     var height: CGFloat = 24
     var width: CGFloat = 30
 
@@ -21,19 +25,27 @@ struct MinimalFaceFeatures: View {
     var body: some View {
         VStack(spacing: eyeSpacing) {
             HStack(spacing: eyeSpacing) {
-                Eye(isBlinking: isBlinking, size: eyeSize, blinkHeight: blinkHeight)
+                Eye(isBlinking: isBlinking, size: eyeSize, blinkHeight: blinkHeight, isWinking: selectedMood == .wink)
                 Eye(isBlinking: isBlinking, size: eyeSize, blinkHeight: blinkHeight)
             }
             VStack(spacing: 2 * (height / 24.0)) {
                 RoundedRectangle(cornerRadius: 2 * (height / 24.0))
                     .fill(Color.white)
                     .frame(width: noseSize.width, height: noseSize.height)
-                Mouth(size: mouthSize)
+                Mouth(size: mouthSize, mood: selectedMood, pulse: mouthPulse)
             }
         }
         .frame(width: width, height: height)
         .onAppear(perform: startBlinking)
         .onDisappear(perform: stopBlinking)
+        .onChange(of: selectedMood) {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                mouthPulse = 1
+            }
+            withAnimation(.easeOut(duration: 0.2).delay(0.35)) {
+                mouthPulse = 0
+            }
+        }
     }
     
     func startBlinking() {
@@ -65,24 +77,55 @@ struct Eye: View {
     let isBlinking: Bool
     let size: CGSize
     let blinkHeight: CGFloat
+    var isWinking: Bool = false
 
     var body: some View {
         RoundedRectangle(cornerRadius: size.height / 2)
             .fill(Color.white)
-            .frame(width: size.width, height: isBlinking ? blinkHeight : size.height)
+            .frame(width: size.width, height: (isBlinking || isWinking) ? blinkHeight : size.height)
             .frame(maxWidth: 15 * (size.height / 4.0), maxHeight: 15 * (size.height / 4.0))
     }
 }
 
 struct Mouth: View {
     let size: CGSize
+    var mood: Mood = .happy
+    var pulse: CGFloat = 0
+
     var body: some View {
         Canvas { context, _ in
             let width = size.width
             let height = size.height
+            // Scale the pulse with the face so it reads the same at any notch height
+            let accent = pulse * 2 * (height / 10.0)
             var path = Path()
-            path.move(to: CGPoint(x: 0, y: height / 2))
-            path.addQuadCurve(to: CGPoint(x: width, y: height / 2), control: CGPoint(x: width / 2, y: height))
+
+            switch mood {
+            case .happy, .wink:
+                path.move(to: CGPoint(x: 0, y: height / 2))
+                path.addQuadCurve(
+                    to: CGPoint(x: width, y: height / 2),
+                    control: CGPoint(x: width / 2, y: height + accent)
+                )
+            case .neutral:
+                path.move(to: CGPoint(x: 0, y: height / 2))
+                path.addLine(to: CGPoint(x: width, y: height / 2))
+            case .sad:
+                path.move(to: CGPoint(x: 0, y: height / 2))
+                path.addQuadCurve(
+                    to: CGPoint(x: width, y: height / 2),
+                    control: CGPoint(x: width / 2, y: -accent)
+                )
+            case .surprised:
+                let diameter = min(width, height) / 3
+                path.addEllipse(in: CGRect(
+                    x: (width - diameter) / 2,
+                    y: (height - diameter) / 2,
+                    width: diameter,
+                    height: diameter
+                ))
+            }
+
             context.stroke(path, with: .color(.white), lineWidth: max(1, 2 * (size.height / 10.0)))
         }
         .frame(width: size.width, height: size.height)
