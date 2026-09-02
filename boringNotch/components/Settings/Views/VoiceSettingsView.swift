@@ -82,6 +82,19 @@ struct VoiceSettings: View {
                     .foregroundStyle(.secondary)
                     .font(.caption)
             }
+
+            Section {
+                LabeledContent("Activity log") {
+                    Button("Reveal in Finder") {
+                        NSWorkspace.shared.activateFileViewerSelecting([VoiceAuditLog.fileURL])
+                    }
+                }
+            } footer: {
+                Text("Every voice session is recorded locally: what was heard, what it matched, and what happened.")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Voice")

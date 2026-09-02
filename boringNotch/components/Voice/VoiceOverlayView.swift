@@ -55,6 +55,10 @@ struct VoiceOverlayView: View {
         case .listening:
             PulsingDot()
         case .result:
+            Image(systemName: "text.quote")
+                .font(.system(size: 22))
+                .foregroundStyle(.secondary)
+        case .acted:
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 26))
                 .foregroundStyle(.green)
@@ -72,6 +76,7 @@ struct VoiceOverlayView: View {
         case .listening: return "Listening…"
         case .transcribing: return "Transcribing…"
         case .result: return "Heard"
+        case .acted: return "Done"
         case .failed: return "Voice input failed"
         }
     }
@@ -89,6 +94,8 @@ struct VoiceOverlayView: View {
             return ""
         case let .result(text):
             return text
+        case let .acted(summary):
+            return summary
         case let .failed(message):
             return message
         }
@@ -97,6 +104,7 @@ struct VoiceOverlayView: View {
     private var bodyColor: Color {
         switch store.state {
         case .result: return .white
+        case .acted: return .white
         case .failed: return .orange
         case let .listening(partial): return partial.isEmpty ? .gray : .white
         default: return .gray

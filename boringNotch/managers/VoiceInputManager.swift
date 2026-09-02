@@ -28,7 +28,10 @@ enum VoiceSessionState: Equatable {
     case listening(partial: String)
     /// Audio finished, waiting on the last results to finalize.
     case transcribing
+    /// Heard, but nothing acted on it.
     case result(String)
+    /// Heard and executed. Carries a short summary of what was done.
+    case acted(String)
     case failed(String)
 
     var isActive: Bool { self != .idle }
@@ -76,6 +79,9 @@ final class VoiceInputManager {
     /// Tracks the `SharingStateManager` balance so it is released exactly once.
     private var holdsNotchOpen = false
     private var isRecording = false
+    /// True once the session actually reached the listening state, so a failed
+    /// session can say whether it was too-early release or genuine silence.
+    private var didStartListening = false
 
     private init() {}
 
@@ -92,6 +98,7 @@ final class VoiceInputManager {
         resetTask = nil
 
         isRecording = true
+        didStartListening = false
         finalizedText = ""
         volatileText = ""
         startedAt = Date()
@@ -180,6 +187,7 @@ final class VoiceInputManager {
             try startAudioEngine()
 
             guard isRecording else { return }
+            didStartListening = true
             store.state = .listening(partial: "")
         } catch {
             fail(error.localizedDescription)
@@ -203,10 +211,38 @@ final class VoiceInputManager {
         analyzer = nil
         transcriber = nil
 
-        let text = finalizedText.trimmingCharacters(in: .whitespacesAndNewlines)
+        // Fall back to the volatile (not yet finalized) text: a short utterance
+        // released quickly can end the stream before a final result arrives,
+        // and throwing that away loses a perfectly good transcript.
+        var text = finalizedText.trimmingCharacters(in: .whitespacesAndNewlines)
         if text.isEmpty {
-            store.state = .failed("Didn't catch that.")
+            text = volatileText.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+
+        if text.isEmpty {
+            // Distinguish "released before the recogniser was ready" from
+            // "listened, heard nothing" — they have different fixes.
+            if didStartListening {
+                VoiceAuditLog.record(event: "empty_transcript")
+                store.state = .failed("Didn't catch that.")
+            } else {
+                VoiceAuditLog.record(event: "released_before_ready")
+                store.state = .failed("Still starting up — hold the shortcut a moment longer.")
+            }
+        } else if let action = LocalIntentMatcher.match(text) {
+            // Fast path: no network, no shell. Anything the matcher declines
+            // falls through to the agent (not yet wired — see plan stage B).
+            let outcome = await ActionExecutor.run(action)
+            VoiceAuditLog.record(event: outcome.succeeded ? "acted" : "action_failed", fields: [
+                "transcript": text,
+                "action": String(describing: action),
+                "outcome": outcome.message,
+            ])
+            store.state = outcome.succeeded ? .acted(outcome.message) : .failed(outcome.message)
         } else {
+            // The interesting case: heard fine, matched nothing. These are the
+            // phrasings the matcher should learn, or that Stage B will handle.
+            VoiceAuditLog.record(event: "no_match", fields: ["transcript": text])
             store.state = .result(text)
         }
         scheduleReset()
@@ -319,6 +355,7 @@ final class VoiceInputManager {
 
     private func fail(_ message: String) {
         NSLog("[voice] failed: \(message)")
+        VoiceAuditLog.record(event: "session_failed", fields: ["reason": message])
         isRecording = false
         store.state = .failed(message)
         Task { [weak self] in

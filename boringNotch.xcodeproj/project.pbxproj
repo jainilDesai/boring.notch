@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B0CE0017AAAA000000000017 /* BrowserTabs.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CE0016AAAA000000000016 /* BrowserTabs.swift */; };
+		B0CE0015AAAA000000000015 /* VoiceAuditLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CE0014AAAA000000000014 /* VoiceAuditLog.swift */; };
+		B0CE0011AAAA000000000011 /* AgentAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CE0010AAAA000000000010 /* AgentAction.swift */; };
+		B0CE0013AAAA000000000013 /* LocalIntentMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CE0012AAAA000000000012 /* LocalIntentMatcher.swift */; };
 		B0CE0005AAAA000000000005 /* VoiceInputManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CE0004AAAA000000000004 /* VoiceInputManager.swift */; };
 		B0CE0007AAAA000000000007 /* VoiceOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CE0006AAAA000000000006 /* VoiceOverlayView.swift */; };
 		B0CE0009AAAA000000000009 /* VoiceSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CE0008AAAA000000000008 /* VoiceSettingsView.swift */; };
@@ -203,6 +207,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		B0CE0016AAAA000000000016 /* BrowserTabs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserTabs.swift; sourceTree = "<group>"; };
+		B0CE0014AAAA000000000014 /* VoiceAuditLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceAuditLog.swift; sourceTree = "<group>"; };
+		B0CE0010AAAA000000000010 /* AgentAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentAction.swift; sourceTree = "<group>"; };
+		B0CE0012AAAA000000000012 /* LocalIntentMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalIntentMatcher.swift; sourceTree = "<group>"; };
 		B0CE0004AAAA000000000004 /* VoiceInputManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceInputManager.swift; sourceTree = "<group>"; };
 		B0CE0006AAAA000000000006 /* VoiceOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceOverlayView.swift; sourceTree = "<group>"; };
 		B0CE0008AAAA000000000008 /* VoiceSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceSettingsView.swift; sourceTree = "<group>"; };
@@ -632,6 +640,10 @@
 		147163B52C5D804B0068B555 /* managers */ = {
 			isa = PBXGroup;
 			children = (
+				B0CE0016AAAA000000000016 /* BrowserTabs.swift */,
+				B0CE0014AAAA000000000014 /* VoiceAuditLog.swift */,
+				B0CE0012AAAA000000000012 /* LocalIntentMatcher.swift */,
+				B0CE0010AAAA000000000010 /* AgentAction.swift */,
 				B0CE0004AAAA000000000004 /* VoiceInputManager.swift */,
 				11DB26652EDD0BE1001EA0CF /* LyricsService.swift */,
 				11D58EA12E760AE100FA8377 /* ImageService.swift */,
@@ -1027,6 +1039,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B0CE0017AAAA000000000017 /* BrowserTabs.swift in Sources */,
+				B0CE0015AAAA000000000015 /* VoiceAuditLog.swift in Sources */,
+				B0CE0011AAAA000000000011 /* AgentAction.swift in Sources */,
+				B0CE0013AAAA000000000013 /* LocalIntentMatcher.swift in Sources */,
 				B0CE0005AAAA000000000005 /* VoiceInputManager.swift in Sources */,
 				B0CE0007AAAA000000000007 /* VoiceOverlayView.swift in Sources */,
 				B0CE0009AAAA000000000009 /* VoiceSettingsView.swift in Sources */,
