@@ -22,8 +22,8 @@ struct VoiceSettings: View {
         return false
     }
 
-    private var microphoneAuthorized: Bool {
-        AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
+    private var microphoneStatus: AVAuthorizationStatus {
+        AVCaptureDevice.authorizationStatus(for: .audio)
     }
 
     var body: some View {
@@ -59,10 +59,16 @@ struct VoiceSettings: View {
 
             Section {
                 LabeledContent("Microphone access") {
-                    if microphoneAuthorized {
+                    switch microphoneStatus {
+                    case .authorized:
                         Label("Granted", systemImage: "checkmark.circle.fill")
                             .foregroundStyle(.green)
-                    } else {
+                    case .notDetermined:
+                        // macOS only lists the app under Privacy > Microphone once it
+                        // has actually asked, so sending the user there now is a dead end.
+                        Text("You'll be asked the first time you use the shortcut.")
+                            .foregroundStyle(.secondary)
+                    default:
                         Button("Open System Settings") {
                             if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone") {
                                 NSWorkspace.shared.open(url)
