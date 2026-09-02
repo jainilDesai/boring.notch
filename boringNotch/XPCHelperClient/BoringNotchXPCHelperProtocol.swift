@@ -59,4 +59,9 @@ final class BNLunarBrightnessEvent: NSObject, NSSecureCoding {
     func stopLunarEventStream()
     /// Write Lunar's hideOSD preference (disable/enable Lunar's OSD when we replace it).
     func setLunarOSDHidden(_ hide: Bool, with reply: @escaping (Bool) -> Void)
+
+    // Voice agent: runs the Claude CLI outside the app sandbox.
+    // reply is (resultText, errorMessage) — exactly one is non-nil.
+    func runAgentCommand(_ transcript: String, with reply: @escaping (String?, String?) -> Void)
+    func cancelAgentCommand()
 }

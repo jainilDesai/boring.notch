@@ -20,6 +20,8 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
     private var lunarStreamTask: Task<Void, Never>?
     private var lunarListener: BoringNotchXPCHelperLunarListener?
 
+    private let agentRunner = AgentRunner()
+
     init(connection: NSXPCConnection) {
         self.connection = connection
         super.init()
@@ -360,6 +362,16 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         CFPreferencesSetValue(key, value, appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost)
         let ok = CFPreferencesSynchronize(appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost)
         reply(ok)
+    }
+
+    // MARK: - Voice agent
+
+    @objc func runAgentCommand(_ transcript: String, with reply: @escaping (String?, String?) -> Void) {
+        agentRunner.run(transcript: transcript, completion: reply)
+    }
+
+    @objc func cancelAgentCommand() {
+        agentRunner.cancel()
     }
 
     // MARK: - Private helpers for DisplayServices / IOKit access

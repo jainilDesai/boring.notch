@@ -48,7 +48,7 @@ struct VoiceOverlayView: View {
         switch store.state {
         case .idle:
             EmptyView()
-        case .preparing, .transcribing:
+        case .preparing, .transcribing, .thinking:
             ProgressView()
                 .controlSize(.small)
                 .progressViewStyle(.circular)
@@ -62,6 +62,10 @@ struct VoiceOverlayView: View {
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 26))
                 .foregroundStyle(.green)
+        case .answered:
+            Image(systemName: "sparkles")
+                .font(.system(size: 22))
+                .foregroundStyle(.purple)
         case .failed:
             Image(systemName: "exclamationmark.triangle.fill")
                 .font(.system(size: 24))
@@ -75,8 +79,10 @@ struct VoiceOverlayView: View {
         case .preparing: return "Getting ready"
         case .listening: return "Listening…"
         case .transcribing: return "Transcribing…"
+        case .thinking: return "Thinking…"
         case .result: return "Heard"
         case .acted: return "Done"
+        case .answered: return "Jarvis"
         case .failed: return "Voice input failed"
         }
     }
@@ -92,10 +98,14 @@ struct VoiceOverlayView: View {
             return partial.isEmpty ? "Speak now, then release the shortcut." : partial
         case .transcribing:
             return ""
+        case let .thinking(text):
+            return text
         case let .result(text):
             return text
         case let .acted(summary):
             return summary
+        case let .answered(reply):
+            return reply
         case let .failed(message):
             return message
         }
@@ -105,6 +115,8 @@ struct VoiceOverlayView: View {
         switch store.state {
         case .result: return .white
         case .acted: return .white
+        case .answered: return .white
+        case .thinking: return .gray
         case .failed: return .orange
         case let .listening(partial): return partial.isEmpty ? .gray : .white
         default: return .gray

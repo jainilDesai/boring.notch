@@ -28,10 +28,14 @@ enum VoiceSessionState: Equatable {
     case listening(partial: String)
     /// Audio finished, waiting on the last results to finalize.
     case transcribing
+    /// Handed to the agent; waiting on a reply.
+    case thinking(String)
     /// Heard, but nothing acted on it.
     case result(String)
     /// Heard and executed. Carries a short summary of what was done.
     case acted(String)
+    /// The agent replied. Carries its answer.
+    case answered(String)
     case failed(String)
 
     var isActive: Bool { self != .idle }
@@ -240,12 +244,33 @@ final class VoiceInputManager {
             ])
             store.state = outcome.succeeded ? .acted(outcome.message) : .failed(outcome.message)
         } else {
-            // The interesting case: heard fine, matched nothing. These are the
-            // phrasings the matcher should learn, or that Stage B will handle.
+            // No local match — hand it to the agent. It runs with --restricted
+            // in the helper, so it can answer but cannot execute anything.
             VoiceAuditLog.record(event: "no_match", fields: ["transcript": text])
-            store.state = .result(text)
+            await runAgent(on: text)
         }
         scheduleReset()
+    }
+
+    /// Sends a transcript the matcher declined to the agent in the XPC helper.
+    private func runAgent(on text: String) async {
+        store.state = .thinking(text)
+        let started = Date()
+        let outcome = await XPCHelperClient.shared.runAgentCommand(text)
+        let elapsed = String(format: "%.1f", Date().timeIntervalSince(started))
+
+        switch outcome {
+        case let .success(reply):
+            VoiceAuditLog.record(event: "agent_replied", fields: [
+                "transcript": text, "reply": reply, "seconds": elapsed,
+            ])
+            store.state = .answered(reply)
+        case let .failure(error):
+            VoiceAuditLog.record(event: "agent_failed", fields: [
+                "transcript": text, "error": error.text, "seconds": elapsed,
+            ])
+            store.state = .failed(error.text)
+        }
     }
 
     private func consumeResults(from transcriber: SpeechTranscriber) {

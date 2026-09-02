@@ -127,6 +127,42 @@ final class XPCHelperClient: NSObject {
     
     // MARK: - Accessibility
     
+    // MARK: - Voice agent
+
+    /// Runs one voice command through the Claude CLI in the unsandboxed helper.
+    /// Returns the reply text, or throws with a message suitable for display.
+    nonisolated func runAgentCommand(_ transcript: String) async -> Result<String, AgentCommandError> {
+        do {
+            let service = await MainActor.run {
+                ensureRemoteService()
+            }
+            let outcome: Result<String, AgentCommandError> = try await service.withContinuation { service, continuation in
+                service.runAgentCommand(transcript) { text, error in
+                    if let text {
+                        continuation.resume(returning: .success(text))
+                    } else {
+                        continuation.resume(returning: .failure(.message(error ?? "The agent failed.")))
+                    }
+                }
+            }
+            return outcome
+        } catch {
+            // Connection-level failure: the helper crashed, or was never reachable.
+            return .failure(.message("Couldn't reach the agent helper."))
+        }
+    }
+
+    nonisolated func cancelAgentCommand() {
+        Task {
+            let service = await MainActor.run {
+                ensureRemoteService()
+            }
+            try? await service.withService { service in
+                service.cancelAgentCommand()
+            }
+        }
+    }
+
     nonisolated func requestAccessibilityAuthorization() {
         Task {
             let service = await MainActor.run {
@@ -367,3 +403,12 @@ final class XPCHelperClient: NSObject {
     }
 }
 
+enum AgentCommandError: Error {
+    case message(String)
+
+    var text: String {
+        switch self {
+        case let .message(value): return value
+        }
+    }
+}
