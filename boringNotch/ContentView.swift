@@ -23,6 +23,7 @@ struct ContentView: View {
     @ObservedObject var batteryModel = BatteryStatusViewModel.shared
     @ObservedObject var brightnessManager = BrightnessManager.shared
     @ObservedObject var volumeManager = VolumeManager.shared
+    @ObservedObject var voiceSession = VoiceSessionStore.shared
     @State private var hoverTask: Task<Void, Never>?
     @State private var isHovering: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
@@ -423,15 +424,21 @@ struct ContentView: View {
               .zIndex(1)
             if vm.notchState == .open {
                 VStack {
-                    switch coordinator.currentView {
-                    case .home:
-                        NotchHomeView(
-                            albumArtNamespace: albumArtNamespace,
-                            horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
-                            isHoveringMusicArea: $isHoveringMusicArea
-                        )
-                    case .shelf:
-                        ShelfView()
+                    // A running voice session takes over the open notch, then hands
+                    // it back. Deliberately not a tab — see VoiceOverlayView.
+                    if voiceSession.state.isActive {
+                        VoiceOverlayView()
+                    } else {
+                        switch coordinator.currentView {
+                        case .home:
+                            NotchHomeView(
+                                albumArtNamespace: albumArtNamespace,
+                                horizontalMediaGestureFeedback: horizontalMediaGestureFeedback,
+                                isHoveringMusicArea: $isHoveringMusicArea
+                            )
+                        case .shelf:
+                            ShelfView()
+                        }
                     }
                 }
                 .transition(

@@ -450,6 +450,44 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+        // Push to talk. Both handlers are registered at top level on purpose:
+        // registering onKeyUp inside onKeyDown re-registers it on every press.
+        KeyboardShortcuts.onKeyDown(for: .voiceCommand) { [weak self] in
+            guard let self = self else { return }
+            guard Defaults[.voiceAgentEnabled] else { return }
+
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                guard #available(macOS 26.0, *) else { return }
+
+                // Open the notch on the screen holding the pointer, matching
+                // the toggleNotchOpen behaviour above.
+                let mouseLocation = NSEvent.mouseLocation
+                var viewModel = self.vm
+                if Defaults[.showOnAllDisplays] {
+                    for screen in NSScreen.screens where screen.frame.contains(mouseLocation) {
+                        if let uuid = screen.displayUUID, let screenViewModel = self.viewModels[uuid] {
+                            viewModel = screenViewModel
+                            break
+                        }
+                    }
+                }
+
+                self.closeNotchTask?.cancel()
+                self.closeNotchTask = nil
+                viewModel.open()
+
+                VoiceInputManager.shared.beginListening()
+            }
+        }
+
+        KeyboardShortcuts.onKeyUp(for: .voiceCommand) {
+            Task { @MainActor in
+                guard #available(macOS 26.0, *) else { return }
+                VoiceInputManager.shared.endListening()
+            }
+        }
+
         // Sync notch height with real value on app launch if mode is matchRealNotchSize
         syncNotchHeightIfNeeded()
         

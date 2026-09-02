@@ -26,6 +26,16 @@ struct Shortcuts: View {
             Section {
                 KeyboardShortcuts.Recorder("Toggle Notch Open:", name: .toggleNotchOpen)
             }
+            Section {
+                KeyboardShortcuts.Recorder("Push To Talk:", name: .voiceCommand)
+            } header: {
+                Text("Voice")
+            } footer: {
+                Text("Hold to record, release to transcribe. Enable voice input in the Voice tab first.")
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            }
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("Shortcuts")

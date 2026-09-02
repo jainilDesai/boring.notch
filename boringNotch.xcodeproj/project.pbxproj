@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B0CE0005AAAA000000000005 /* VoiceInputManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CE0004AAAA000000000004 /* VoiceInputManager.swift */; };
+		B0CE0007AAAA000000000007 /* VoiceOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CE0006AAAA000000000006 /* VoiceOverlayView.swift */; };
+		B0CE0009AAAA000000000009 /* VoiceSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CE0008AAAA000000000008 /* VoiceSettingsView.swift */; };
 		1100290C2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */; };
 		110029272E84FD4C00035A57 /* TemporaryFileStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */; };
 		1100292A2E8691B400035A57 /* FileShareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 110029292E8691B400035A57 /* FileShareView.swift */; };
@@ -200,6 +203,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		B0CE0004AAAA000000000004 /* VoiceInputManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceInputManager.swift; sourceTree = "<group>"; };
+		B0CE0006AAAA000000000006 /* VoiceOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceOverlayView.swift; sourceTree = "<group>"; };
+		B0CE0008AAAA000000000008 /* VoiceSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceSettingsView.swift; sourceTree = "<group>"; };
 		1100290B2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSItemProvider+LoadHelpers.swift"; sourceTree = "<group>"; };
 		110029262E84FD4C00035A57 /* TemporaryFileStorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemporaryFileStorageService.swift; sourceTree = "<group>"; };
 		110029292E8691B400035A57 /* FileShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileShareView.swift; sourceTree = "<group>"; };
@@ -533,6 +539,7 @@
 		11DB26722EDD0CDF001EA0CF /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				B0CE0008AAAA000000000008 /* VoiceSettingsView.swift */,
 				11DB26672EDD0CDF001EA0CF /* AboutView.swift */,
 				11DB26682EDD0CDF001EA0CF /* AdvancedSettingsView.swift */,
 				11DB26692EDD0CDF001EA0CF /* AppearanceSettingsView.swift */,
@@ -591,9 +598,18 @@
 			path = sizing;
 			sourceTree = "<group>";
 		};
+		B0CE000AAAAA00000000000A /* Voice */ = {
+			isa = PBXGroup;
+			children = (
+				B0CE0006AAAA000000000006 /* VoiceOverlayView.swift */,
+			);
+			path = Voice;
+			sourceTree = "<group>";
+		};
 		1471639B2C5D362F0068B555 /* components */ = {
 			isa = PBXGroup;
 			children = (
+				B0CE000AAAAA00000000000A /* Voice */,
 				11985BDF2F37A3C800F81585 /* OSD */,
 				B141C23B2CA5F50900AC8CC8 /* Onboarding */,
 				14C08BB72C8DE49E000F8AA0 /* Calendar */,
@@ -616,6 +632,7 @@
 		147163B52C5D804B0068B555 /* managers */ = {
 			isa = PBXGroup;
 			children = (
+				B0CE0004AAAA000000000004 /* VoiceInputManager.swift */,
 				11DB26652EDD0BE1001EA0CF /* LyricsService.swift */,
 				11D58EA12E760AE100FA8377 /* ImageService.swift */,
 				F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */,
@@ -1010,6 +1027,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B0CE0005AAAA000000000005 /* VoiceInputManager.swift in Sources */,
+				B0CE0007AAAA000000000007 /* VoiceOverlayView.swift in Sources */,
+				B0CE0009AAAA000000000009 /* VoiceSettingsView.swift in Sources */,
 				115C12EC2ED3D003009754CA /* OpenNotchOSD.swift in Sources */,
 				14C08BB92C8DE4B1000F8AA0 /* BoringCalendar.swift in Sources */,
 				5955950D2E900ED800C66711 /* ApplicationRelauncher.swift in Sources */,
@@ -1372,6 +1392,8 @@
 				INFOPLIST_KEY_NSAppleEventsUsageDescription = "This app uses AppleEvents to control music";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "This app uses the calendar to display your calendar events";
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the camera to display a live camera view";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Brow listens to your microphone only while you hold the voice shortcut. Speech is transcribed on-device and never leaves your Mac.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Brow transcribes what you say while you hold the voice shortcut, using on-device speech recognition.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSRemindersUsageDescription = "This app uses Reminders to display your scheduled reminder in the calendar";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1438,6 +1460,8 @@
 				INFOPLIST_KEY_NSAppleEventsUsageDescription = "This app uses AppleEvents to control music";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "This app uses the calendar to display your calendar events";
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the camera to display a live camera view";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Brow listens to your microphone only while you hold the voice shortcut. Speech is transcribed on-device and never leaves your Mac.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Brow transcribes what you say while you hold the voice shortcut, using on-device speech recognition.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSRemindersUsageDescription = "This app uses Reminders to display your scheduled reminder in the calendar";
 				LD_RUNPATH_SEARCH_PATHS = (

@@ -20,6 +20,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
     case shelf
     case mirror
     case shortcuts
+    case voice
     case advanced
     case about
 
@@ -37,6 +38,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
         case .shelf: "Shelf"
         case .mirror: "Mirror"
         case .shortcuts: "Shortcuts"
+        case .voice: "Voice"
         case .advanced: "Advanced"
         case .about: "About"
         }
@@ -54,6 +56,7 @@ private enum SettingsTab: String, CaseIterable, Identifiable {
         case .shelf: "books.vertical"
         case .mirror: "camera"
         case .shortcuts: "keyboard"
+        case .voice: "waveform"
         case .advanced: "gearshape.2"
         case .about: "info.circle"
         }
@@ -105,6 +108,8 @@ struct SettingsView: View {
                     MirrorSettings()
                 case .shortcuts:
                     Shortcuts()
+                case .voice:
+                    VoiceSettings()
                 case .advanced:
                     Advanced()
                 case .about:

@@ -382,4 +382,8 @@ extension Defaults.Keys {
     }
 
     static let didClearLegacyURLCacheV1 = Key<Bool>("didClearLegacyURLCache_v1", default: false)
+
+    // MARK: Voice
+    // Off by default: this opens the microphone, so it must be opted into.
+    static let voiceAgentEnabled = Key<Bool>("voiceAgentEnabled", default: false)
 }
