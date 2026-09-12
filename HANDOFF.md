@@ -20,20 +20,34 @@ not the fork. See `brow-agent/docs/07-DECISIONS.md` (D10, D11).
 
 ## Before you touch anything
 
-**1. Roughly half the work is uncommitted**, including the entire safety gate
-and the custom-command system. `git status` will show ~20 modified/untracked
-files. Commit before making changes.
+**1. The working tree is clean, but six commits are unpushed.** This repo is
+**public**. Nothing in that history carries a secret — the diff was scanned, and
+`BoringNotchXPCHelper/credential-mirror.sh` plus the LaunchAgent plist are in
+`.gitignore` and stay on disk only. Neither is referenced by any target, so
+excluding them breaks no build. Push deliberately; do not `git add -A` and hope.
 
-**2. Do NOT `git add -A && git push`.** This repo is **public**, and
-`BoringNotchXPCHelper/credential-mirror.sh` plus the LaunchAgent plist are
-untracked and relate to a credential bridge. Either exclude them or make the
-repo private first.
+**2. The agent has a real shell.** Every command it generates is screened by
+`BoringNotchXPCHelper/AgentGate.swift`, which writes a `PreToolUse` hook to
+`~/.brow/gate.sh`. It denies by default. The gate has been broken four separate
+times, each in a way that looked correct and passed a test written for it, so
+**read `brow-agent/docs/04-SECURITY.md` in full before changing it** — the
+failures are recorded there with the lesson, which is the point of the document.
 
-**3. There is an open security issue.** `cat ~/.claude/.credential*` was
-auto-allowed by the agent gate with no prompt — a glob walks around a deny-list
-that only knows literal filenames. A fix was written but **verification was
-inconclusive**. Treat the gate as compromised for file reads until confirmed.
-Full detail in `brow-agent/docs/04-SECURITY.md`.
+The credential-read bypass that was open here is **closed and verified**
+(2026-09-12): 34 cases pass against the generated script, and the suite was
+proved able to fail by running it against a reconstructed pre-fix gate.
+
+`--tools Bash` and `--settings <gate>` must always be passed together. If
+`gate.log` stops gaining lines for real commands, the gate is not in the
+execution path and `--restricted` goes back in until it is.
+
+**3. Run the suites before committing matcher or gate changes.** A pre-commit
+hook does this for you, symlinked from `brow-agent/tests/pre-commit`. If you
+cloned fresh, install it:
+
+```bash
+ln -sf ~/Documents/projects/brow-agent/tests/pre-commit .git/hooks/pre-commit
+```
 
 **4. Release builds need an explicit team**, or the app will not launch:
 
