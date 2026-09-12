@@ -20,6 +20,23 @@ enum CredentialSync {
 
     private static let keychainService = "Claude Code-credentials"
 
+    /// Diagnostics land in a file because NSLog from this helper is not
+    /// retrievable via `log show`.
+    private static var logURL: URL {
+        AgentGate.directory.appendingPathComponent("agent.log")
+    }
+
+    static func note(_ message: String) {
+        let line = "\(ISO8601DateFormatter().string(from: Date()))\t\(message)\n"
+        if let handle = try? FileHandle(forWritingTo: logURL) {
+            defer { try? handle.close() }
+            _ = try? handle.seekToEnd()
+            try? handle.write(contentsOf: Data(line.utf8))
+        } else {
+            try? line.write(to: logURL, atomically: true, encoding: .utf8)
+        }
+    }
+
     private static var credentialsURL: URL {
         URL(fileURLWithPath: NSHomeDirectory())
             .appendingPathComponent(".claude/.credentials.json")
@@ -49,22 +66,45 @@ enum CredentialSync {
         return Date().timeIntervalSince1970 * 1000 >= expiresAt - 60_000
     }
 
+    /// Deletes the credentials file when its token has expired.
+    ///
+    /// The CLI prefers this file over the keychain, so a stale copy actively
+    /// shadows working keychain credentials. OAuth refresh tokens rotate — a
+    /// refresh by any other Claude Code session invalidates the copy — so an
+    /// expired file is worse than no file at all.
+    @discardableResult
+    static func removeIfExpired() -> Bool {
+        guard FileManager.default.fileExists(atPath: credentialsURL.path), needsSync() else {
+            return false
+        }
+        guard (try? FileManager.default.removeItem(at: credentialsURL)) != nil else { return false }
+        NSLog("[agent] removed expired credentials file so the keychain can be used")
+        return true
+    }
+
     /// Copies the OAuth section from the keychain into the credentials file.
     /// Returns true when the file changed.
     @discardableResult
     static func sync() -> Bool {
-        guard let json = readKeychain() else { return false }
+        guard let json = readKeychain() else {
+            note("keychain read FAILED — the helper cannot reach the keychain")
+            return false
+        }
         guard
             let root = try? JSONSerialization.jsonObject(with: Data(json.utf8)) as? [String: Any],
             let oauth = root["claudeAiOauth"]
-        else { return false }
+        else {
+            note("keychain read ok but no claudeAiOauth section")
+            return false
+        }
 
         guard let payload = try? JSONSerialization.data(
             withJSONObject: ["claudeAiOauth": oauth], options: [.sortedKeys]
         ) else { return false }
 
         if let existing = try? Data(contentsOf: credentialsURL), existing == payload {
-            return false  // already current
+            note("credentials already current")
+            return true  // current, and usable — not a failure
         }
 
         let directory = credentialsURL.deletingLastPathComponent()
