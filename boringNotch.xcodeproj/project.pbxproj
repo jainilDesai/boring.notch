@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B0CE0021AAAA000000000021 /* CustomCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CE0020AAAA000000000020 /* CustomCommand.swift */; };
+		B0CE0023AAAA000000000023 /* CustomCommandRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CE0022AAAA000000000022 /* CustomCommandRunner.swift */; };
+		B0CE0025AAAA000000000025 /* ConfirmPrompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CE0024AAAA000000000024 /* ConfirmPrompt.swift */; };
+		B0CE0027AAAA000000000027 /* CommandsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CE0026AAAA000000000026 /* CommandsSettingsView.swift */; };
 		B0CE0017AAAA000000000017 /* BrowserTabs.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CE0016AAAA000000000016 /* BrowserTabs.swift */; };
 		B0CE0015AAAA000000000015 /* VoiceAuditLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CE0014AAAA000000000014 /* VoiceAuditLog.swift */; };
 		B0CE0011AAAA000000000011 /* AgentAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CE0010AAAA000000000010 /* AgentAction.swift */; };
@@ -207,6 +211,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		B0CE0020AAAA000000000020 /* CustomCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomCommand.swift; sourceTree = "<group>"; };
+		B0CE0022AAAA000000000022 /* CustomCommandRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomCommandRunner.swift; sourceTree = "<group>"; };
+		B0CE0024AAAA000000000024 /* ConfirmPrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfirmPrompt.swift; sourceTree = "<group>"; };
+		B0CE0026AAAA000000000026 /* CommandsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandsSettingsView.swift; sourceTree = "<group>"; };
 		B0CE0016AAAA000000000016 /* BrowserTabs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserTabs.swift; sourceTree = "<group>"; };
 		B0CE0014AAAA000000000014 /* VoiceAuditLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceAuditLog.swift; sourceTree = "<group>"; };
 		B0CE0010AAAA000000000010 /* AgentAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentAction.swift; sourceTree = "<group>"; };
@@ -547,6 +555,7 @@
 		11DB26722EDD0CDF001EA0CF /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				B0CE0026AAAA000000000026 /* CommandsSettingsView.swift */,
 				B0CE0008AAAA000000000008 /* VoiceSettingsView.swift */,
 				11DB26672EDD0CDF001EA0CF /* AboutView.swift */,
 				11DB26682EDD0CDF001EA0CF /* AdvancedSettingsView.swift */,
@@ -640,6 +649,8 @@
 		147163B52C5D804B0068B555 /* managers */ = {
 			isa = PBXGroup;
 			children = (
+				B0CE0024AAAA000000000024 /* ConfirmPrompt.swift */,
+				B0CE0022AAAA000000000022 /* CustomCommandRunner.swift */,
 				B0CE0016AAAA000000000016 /* BrowserTabs.swift */,
 				B0CE0014AAAA000000000014 /* VoiceAuditLog.swift */,
 				B0CE0012AAAA000000000012 /* LocalIntentMatcher.swift */,
@@ -770,6 +781,7 @@
 		14D570C72C5F38760011E668 /* models */ = {
 			isa = PBXGroup;
 			children = (
+				B0CE0020AAAA000000000020 /* CustomCommand.swift */,
 				11F748812ECB07A400F841DB /* MusicControlButton.swift */,
 				118D1FD02E98FF5F00A2FF63 /* SharingStateManager.swift */,
 				1163988E2DF5CC870052E6AF /* CalendarModel.swift */,
@@ -1039,6 +1051,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B0CE0021AAAA000000000021 /* CustomCommand.swift in Sources */,
+				B0CE0023AAAA000000000023 /* CustomCommandRunner.swift in Sources */,
+				B0CE0025AAAA000000000025 /* ConfirmPrompt.swift in Sources */,
+				B0CE0027AAAA000000000027 /* CommandsSettingsView.swift in Sources */,
 				B0CE0017AAAA000000000017 /* BrowserTabs.swift in Sources */,
 				B0CE0015AAAA000000000015 /* VoiceAuditLog.swift in Sources */,
 				B0CE0011AAAA000000000011 /* AgentAction.swift in Sources */,

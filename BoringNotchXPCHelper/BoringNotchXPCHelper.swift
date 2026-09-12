@@ -374,6 +374,13 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         agentRunner.cancel()
     }
 
+    /// Runs a user-authored command from Settings. Deliberately not gated: the
+    /// user wrote it, and the app confirms before calling this when the command
+    /// contains a shell/AppleScript/Shortcut step.
+    @objc func runUserShellCommand(_ command: String, with reply: @escaping (String?, String?) -> Void) {
+        UserCommandRunner.run(command: command, completion: reply)
+    }
+
     // MARK: - Private helpers for DisplayServices / IOKit access
     private func displayServicesGetBrightness(displayID: CGDirectDisplayID, out: inout Float) -> Bool {
         guard let sym = dlsym(DisplayServicesHandle.handle, "DisplayServicesGetBrightness") else { return false }

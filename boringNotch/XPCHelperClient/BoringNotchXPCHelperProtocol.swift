@@ -64,4 +64,8 @@ final class BNLunarBrightnessEvent: NSObject, NSSecureCoding {
     // reply is (resultText, errorMessage) — exactly one is non-nil.
     func runAgentCommand(_ transcript: String, with reply: @escaping (String?, String?) -> Void)
     func cancelAgentCommand()
+
+    // User-authored command from Settings > Commands. Not model-generated, so
+    // it does not pass through AgentGate; the user wrote it themselves.
+    func runUserShellCommand(_ command: String, with reply: @escaping (String?, String?) -> Void)
 }

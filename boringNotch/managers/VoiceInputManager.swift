@@ -63,6 +63,9 @@ final class VoiceInputManager {
     private static let minimumRecordingDuration: TimeInterval = 0.25
     /// How long a finished transcript stays on screen before the notch returns to normal.
     private static let resultLingerDuration: Duration = .seconds(4)
+    /// Agent replies are whole sentences and often arrive after a wait, so they
+    /// need longer on screen than "Volume 40%".
+    private static let answerLingerDuration: Duration = .seconds(10)
 
     private let store = VoiceSessionStore.shared
 
@@ -233,9 +236,13 @@ final class VoiceInputManager {
                 VoiceAuditLog.record(event: "released_before_ready")
                 store.state = .failed("Still starting up — hold the shortcut a moment longer.")
             }
+        } else if let command = CustomCommandStore.shared.match(text) {
+            // User-defined commands win over built-ins, so a user can override
+            // "open youtube" with their own version.
+            await runCustomCommand(command, transcript: text)
         } else if let action = LocalIntentMatcher.match(text) {
             // Fast path: no network, no shell. Anything the matcher declines
-            // falls through to the agent (not yet wired — see plan stage B).
+            // falls through to the agent.
             let outcome = await ActionExecutor.run(action)
             VoiceAuditLog.record(event: outcome.succeeded ? "acted" : "action_failed", fields: [
                 "transcript": text,
@@ -250,6 +257,32 @@ final class VoiceInputManager {
             await runAgent(on: text)
         }
         scheduleReset()
+    }
+
+    /// Runs a user-defined command, confirming first when it asks to.
+    private func runCustomCommand(_ command: CustomCommand, transcript: String) async {
+        if command.requiresConfirmation {
+            let summary = command.steps.map(\.summary).joined(separator: "\n")
+            guard await ConfirmPrompt.ask(
+                title: command.name.isEmpty ? "Run this command?" : "Run \"\(command.name)\"?",
+                detail: summary
+            ) else {
+                VoiceAuditLog.record(event: "custom_declined", fields: [
+                    "transcript": transcript, "command": command.name,
+                ])
+                store.state = .failed("Cancelled")
+                return
+            }
+        }
+
+        VoiceAuditLog.record(event: "custom_command", fields: [
+            "transcript": transcript,
+            "command": command.name,
+            "steps": "\(command.steps.count)",
+        ])
+
+        let outcome = await CustomCommandRunner.run(command)
+        store.state = outcome.succeeded ? .acted(outcome.message) : .failed(outcome.message)
     }
 
     /// Sends a transcript the matcher declined to the agent in the XPC helper.
@@ -392,9 +425,19 @@ final class VoiceInputManager {
 
     /// Returns the notch to normal after the result has been on screen a moment.
     private func scheduleReset() {
+        // An agent reply is a sentence to read, and arrives after several
+        // seconds of waiting — the short linger used for "Volume 40%" is not
+        // long enough to catch it.
+        let linger: Duration
+        if case .answered = store.state {
+            linger = Self.answerLingerDuration
+        } else {
+            linger = Self.resultLingerDuration
+        }
+
         resetTask?.cancel()
         resetTask = Task { [weak self] in
-            try? await Task.sleep(for: Self.resultLingerDuration)
+            try? await Task.sleep(for: linger)
             guard !Task.isCancelled, let self else { return }
             self.store.state = .idle
             self.releaseNotch()

@@ -386,4 +386,6 @@ extension Defaults.Keys {
     // MARK: Voice
     // Off by default: this opens the microphone, so it must be opted into.
     static let voiceAgentEnabled = Key<Bool>("voiceAgentEnabled", default: false)
+    // User-defined voice commands (Settings > Commands).
+    static let customCommands = Key<[CustomCommand]>("customCommands", default: [])
 }

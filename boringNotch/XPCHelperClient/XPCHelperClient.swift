@@ -152,6 +152,27 @@ final class XPCHelperClient: NSObject {
         }
     }
 
+    /// Runs a user-authored command from Settings > Commands.
+    nonisolated func runUserShellCommand(_ command: String) async -> Result<String, AgentCommandError> {
+        do {
+            let service = await MainActor.run {
+                ensureRemoteService()
+            }
+            let outcome: Result<String, AgentCommandError> = try await service.withContinuation { service, continuation in
+                service.runUserShellCommand(command) { text, error in
+                    if let text {
+                        continuation.resume(returning: .success(text))
+                    } else {
+                        continuation.resume(returning: .failure(.message(error ?? "The command failed.")))
+                    }
+                }
+            }
+            return outcome
+        } catch {
+            return .failure(.message("Couldn't reach the helper."))
+        }
+    }
+
     nonisolated func cancelAgentCommand() {
         Task {
             let service = await MainActor.run {
