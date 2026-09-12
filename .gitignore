@@ -53,3 +53,10 @@ build/
 *.xcarchive
 *.dSYM
 
+
+# Brow credential bridge — deployment artefacts for the author's machine only.
+# They mirror a personal Claude OAuth token out of the login keychain, and this
+# repo is a public fork. Roadmap item 2.5 deletes the bridge outright once BYOK
+# lands; until then it stays local. See brow-agent/docs/04-SECURITY.md.
+BoringNotchXPCHelper/credential-mirror.sh
+BoringNotchXPCHelper/com.jainildesai.brow.credentials.plist
