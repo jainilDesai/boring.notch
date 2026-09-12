@@ -23,6 +23,8 @@ enum LocalIntentMatcher {
 
         if let action = matchMedia(text) { return action }
         if let action = matchVolume(text) { return action }
+        if let action = matchBrightness(text) { return action }
+        if let action = matchReport(text) { return action }
         if let action = matchSearch(text) { return action }
         if let action = matchQuit(text) { return action }
         if let action = matchOpen(text) { return action }
@@ -37,6 +39,9 @@ enum LocalIntentMatcher {
         // Only strip punctuation that ends a word, so domains keep their dots
         // ("example.com" must not become "example com").
         text = text.replacingOccurrences(of: "[.,!?;:](?=\\s|$)", with: " ", options: .regularExpression)
+        // Speech gives "50%" or "50 percent" depending on phrasing; normalise
+        // to one form so the percent patterns only need to handle one.
+        text = text.replacingOccurrences(of: "%", with: " percent")
         for filler in ["please ", "can you ", "could you ", "hey ", "now "] {
             text = text.replacingOccurrences(of: filler, with: " ")
         }
@@ -86,6 +91,46 @@ enum LocalIntentMatcher {
         return nil
     }
 
+    // MARK: Brightness
+
+    private static func matchBrightness(_ text: String) -> AgentAction? {
+        if ["brightness up", "brighter", "increase brightness", "turn up the brightness"].contains(text) {
+            return .adjustBrightness(delta: 0.1)
+        }
+        if ["brightness down", "dimmer", "darker", "decrease brightness", "turn down the brightness"].contains(text) {
+            return .adjustBrightness(delta: -0.1)
+        }
+        // "change brightness to 50", "set the brightness to 50 percent", "brightness 50"
+        let patterns = [
+            "^(?:set|change|make) (?:the )?brightness (?:to |at )?(\\d{1,3})(?: percent)?$",
+            "^brightness (?:to )?(\\d{1,3})(?: percent)?$",
+        ]
+        for pattern in patterns {
+            if let value = firstCapture(in: text, pattern: pattern),
+               let percent = Int(value), percent <= 100 {
+                return .setBrightness(Float(percent) / 100)
+            }
+        }
+        return nil
+    }
+
+    // MARK: Reports
+
+    private static func matchReport(_ text: String) -> AgentAction? {
+        let apps: Set<String> = [
+            "what apps are running", "which apps are running", "check which apps are running",
+            "what is running", "what's running", "list running apps", "show running apps",
+        ]
+        let tabs: Set<String> = [
+            "what tabs are open", "which tabs are open", "check which tabs are open",
+            "list open tabs", "show open tabs", "what tabs do i have open",
+            "check which are the open tabs",
+        ]
+        if apps.contains(text) { return .report(.runningApps) }
+        if tabs.contains(text) { return .report(.openTabs) }
+        return nil
+    }
+
     // MARK: Search
 
     /// "play X on youtube", "search for X", "google X".
@@ -105,6 +150,21 @@ enum LocalIntentMatcher {
                 if !trimmed.isEmpty {
                     return .searchWeb(query: trimmed, engine: rule.engine)
                 }
+            }
+        }
+
+        // Bare "play <track>". Exact transport phrases are matched earlier, but
+        // vague objects still reach here — "play it" means resume, not a song
+        // called "it", so those fall through to the agent instead.
+        if let query = firstCapture(in: text, pattern: "^play (.+)$") {
+            let trimmed = query.trimmingCharacters(in: .whitespaces)
+            let vague: Set<String> = [
+                "it", "this", "that", "them", "more", "again",
+                "music", "song", "a song", "the song", "some music",
+                "something", "anything", "something else",
+            ]
+            if !trimmed.isEmpty, !vague.contains(trimmed) {
+                return .searchWeb(query: trimmed, engine: .youtubeMusic)
             }
         }
         return nil
@@ -146,18 +206,9 @@ enum LocalIntentMatcher {
         "linkedin": "https://www.linkedin.com",
         "chatgpt": "https://chatgpt.com",
         "claude": "https://claude.ai",
-
-        // Jainil's own sites. Keys are the form left after matchOpen strips a
-        // leading "my "/"the " and a trailing " site"/" website", so "open my
-        // portfolio" and "go to my os" both land here.
-        "portfolio": "https://jainildesai.com",
-        "site": "https://jainildesai.com",
-        "website": "https://jainildesai.com",
-        "jainildesai": "https://jainildesai.com",
-        "jainil desai": "https://jainildesai.com",
-        "os": "https://os.jainildesai.com",
-        "web os": "https://os.jainildesai.com",
-        "jainil os": "https://os.jainildesai.com",
+        // Personal sites belong in user-defined commands (Settings > Commands),
+        // not hardcoded here — this file is public, and a hardcoded alias needs
+        // a rebuild for every new site.
     ]
 
     private static func matchOpen(_ text: String) -> AgentAction? {

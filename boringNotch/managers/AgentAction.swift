@@ -27,6 +27,16 @@ enum AgentAction: Equatable {
     case setVolume(Float)
     /// Relative change, e.g. +0.1.
     case adjustVolume(delta: Float)
+    /// Absolute screen brightness, 0...1.
+    case setBrightness(Float)
+    case adjustBrightness(delta: Float)
+    /// Answers a question locally instead of paying a round trip to the agent.
+    case report(Report)
+
+    enum Report: String, Equatable {
+        case runningApps
+        case openTabs
+    }
 
     enum SearchEngine: String, Equatable {
         case google
@@ -100,11 +110,43 @@ enum ActionExecutor {
             VolumeManager.shared.setAbsolute(Float32(clamped))
             return .ok(clamped == 0 ? "Muted" : "Volume \(Int((clamped * 100).rounded()))%")
 
+        case let .setBrightness(level):
+            let clamped = max(0, min(1, level))
+            BrightnessManager.shared.setAbsolute(value: clamped)
+            return .ok("Brightness \(Int((clamped * 100).rounded()))%")
+
+        case let .adjustBrightness(delta):
+            let target = max(0, min(1, BrightnessManager.shared.rawBrightness + delta))
+            BrightnessManager.shared.setAbsolute(value: target)
+            return .ok("Brightness \(Int((target * 100).rounded()))%")
+
+        case let .report(kind):
+            return await report(kind)
+
         case let .adjustVolume(delta):
             let current = VolumeManager.shared.rawVolume
             let target = max(0, min(1, current + delta))
             VolumeManager.shared.setAbsolute(Float32(target))
             return .ok("Volume \(Int((target * 100).rounded()))%")
+        }
+    }
+
+    // MARK: Reports
+
+    private static func report(_ kind: AgentAction.Report) async -> ActionOutcome {
+        switch kind {
+        case .runningApps:
+            let names = NSWorkspace.shared.runningApplications
+                .filter { $0.activationPolicy == .regular }
+                .compactMap(\.localizedName)
+                .sorted()
+            guard !names.isEmpty else { return .fail("Nothing seems to be running.") }
+            return .ok("\(names.count) apps: " + names.joined(separator: ", "))
+
+        case .openTabs:
+            let titles = await BrowserTabs.listOpenTabs()
+            guard !titles.isEmpty else { return .fail("No open browser tabs found.") }
+            return .ok("\(titles.count) tabs: " + titles.joined(separator: " · "))
         }
     }
 

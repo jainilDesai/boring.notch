@@ -88,6 +88,46 @@ enum BrowserTabs {
         return nil
     }
 
+    /// Titles of every open tab across running scriptable browsers.
+    static func listOpenTabs() async -> [String] {
+        let scripts: [(bundleID: String, script: String)] = [
+            ("com.google.Chrome", """
+             set out to ""
+             tell application "Google Chrome"
+                 repeat with w in windows
+                     repeat with t in tabs of w
+                         set out to out & (title of t) & linefeed
+                     end repeat
+                 end repeat
+             end tell
+             return out
+             """),
+            ("com.apple.Safari", """
+             set out to ""
+             tell application "Safari"
+                 repeat with w in windows
+                     repeat with t in tabs of w
+                         set out to out & (name of t) & linefeed
+                     end repeat
+                 end repeat
+             end tell
+             return out
+             """),
+        ]
+
+        var titles: [String] = []
+        for entry in scripts where isRunning(entry.bundleID) {
+            // `try?` flattens the optional here, so `result` is non-optional.
+            guard let result = try? await AppleScriptHelper.execute(entry.script),
+                  let raw = result.stringValue else { continue }
+            titles += raw
+                .split(separator: "\n")
+                .map { String($0).trimmingCharacters(in: .whitespaces) }
+                .filter { !$0.isEmpty }
+        }
+        return titles
+    }
+
     private static func isRunning(_ bundleID: String) -> Bool {
         !NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).isEmpty
     }
