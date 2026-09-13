@@ -381,6 +381,21 @@ class BoringNotchXPCHelper: NSObject, BoringNotchXPCHelperProtocol {
         UserCommandRunner.run(command: command, completion: reply)
     }
 
+    /// Runs a command the MODEL wrote, so unlike runUserShellCommand it is
+    /// screened first. The gate may block outright, may ask the user, or may
+    /// let a read-only command straight through.
+    @objc func runGatedShellCommand(_ command: String, with reply: @escaping (String?, String?) -> Void) {
+        AgentGate.install()
+        if let refusal = AgentGate.screen(command: command) {
+            // A refusal is a normal outcome, not a transport failure: it goes
+            // back to the model as a tool error so it can say so and stop,
+            // rather than retrying or inventing an answer.
+            reply(nil, refusal)
+            return
+        }
+        UserCommandRunner.run(command: command, completion: reply)
+    }
+
     // MARK: - Private helpers for DisplayServices / IOKit access
     private func displayServicesGetBrightness(displayID: CGDirectDisplayID, out: inout Float) -> Bool {
         guard let sym = dlsym(DisplayServicesHandle.handle, "DisplayServicesGetBrightness") else { return false }

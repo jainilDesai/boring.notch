@@ -68,6 +68,10 @@ final class BNLunarBrightnessEvent: NSObject, NSSecureCoding {
     // User-authored command from Settings > Commands. Not model-generated, so
     // it does not pass through AgentGate; the user wrote it themselves.
     func runUserShellCommand(_ command: String, with reply: @escaping (String?, String?) -> Void)
+    // One shell command from the in-app agent loop. Screened by AgentGate
+    // exactly as the CLI's PreToolUse hook screens the CLI's commands -- two
+    // paths to a shell must not disagree about what is safe.
+    func runGatedShellCommand(_ command: String, with reply: @escaping (String?, String?) -> Void)
 }
 
 /*

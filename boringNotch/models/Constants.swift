@@ -388,4 +388,38 @@ extension Defaults.Keys {
     static let voiceAgentEnabled = Key<Bool>("voiceAgentEnabled", default: false)
     // User-defined voice commands (Settings > Commands).
     static let customCommands = Key<[CustomCommand]>("customCommands", default: [])
+
+    // MARK: Agent (BYOK)
+    // AgentBackend is declared below, beside the other settings types, so
+    // ModelProvider.swift keeps depending on nothing but Foundation -- that is
+    // what lets the agent be tested standalone and moved to the brow-agent
+    // package in roadmap item 5 without dragging the app's dependencies along.
+    // Which back end answers what the local matcher could not. The Claude Code
+    // CLI stays available for people who already have it, but it authenticates
+    // as whoever installed it, so it cannot be the default for anyone else.
+    static let agentBackend = Key<AgentBackend>("agentBackend", default: .claudeCLI)
+    // Haiku by default: this answers someone standing in front of their Mac
+    // waiting, and a voice command is a short, concrete task. Opus is one
+    // field away in Settings for anyone who would rather have the judgement.
+    static let agentModel = Key<String>("agentModel", default: "claude-haiku-4-5")
+    // Only sent to models that accept it -- see AnthropicProvider.supportsEffort.
+    static let agentEffort = Key<String>("agentEffort", default: "low")
+    // The API key itself lives in the Keychain, never here. See APIKeyStore.
+}
+
+/// Which back end answers a question the local matcher declined.
+///
+/// The CLI path stays because it costs nothing to keep and some people already
+/// have it working. It cannot be the default, though: it authenticates as
+/// whoever installed it, which is the entire reason nobody else can run Brow.
+enum AgentBackend: String, Codable, CaseIterable, Defaults.Serializable {
+    case claudeCLI
+    case anthropicAPI
+
+    var displayName: String {
+        switch self {
+        case .claudeCLI: return "Claude Code CLI"
+        case .anthropicAPI: return "Anthropic API key"
+        }
+    }
 }

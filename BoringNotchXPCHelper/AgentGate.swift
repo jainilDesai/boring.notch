@@ -162,6 +162,39 @@ enum AgentGate {
         }
     }
 
+    // MARK: - Screening a command for the in-app agent loop
+
+    /// Screens one command for the BYOK agent loop, which owns its own
+    /// conversation and so never goes through the CLI's PreToolUse hook.
+    ///
+    /// Same decision, same order, same dialog as `runAsHook` -- both call
+    /// `AgentGateDecider.decide`, because two paths to a shell must not be able
+    /// to disagree about what is safe. The CLI path exists as long as anyone
+    /// still uses it; this one is what replaces it.
+    ///
+    /// Returns nil when the command may run, or the refusal to show the model.
+    static func screen(command: String) -> String? {
+        let (decision, message) = AgentGateDecider.decide(command: command)
+
+        switch decision {
+        case .allow:
+            log(decision: decision, command: command)
+            return nil
+
+        case .deny:
+            log(decision: decision, command: command)
+            return message
+
+        case .confirm:
+            let approved = askUser(about: command)
+            let resolved: GateDecision = approved
+                ? .allow(reason: "user-approved")
+                : .deny(reason: "user-denied")
+            log(decision: resolved, command: command)
+            return approved ? nil : "Denied by the user (or the prompt timed out)."
+        }
+    }
+
     private static func askUser(about command: String) -> Bool {
         let shown = String(command.prefix(400)).replacingOccurrences(of: "\"", with: "\\\"")
         let source = """

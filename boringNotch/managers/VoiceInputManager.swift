@@ -285,11 +285,18 @@ final class VoiceInputManager {
         store.state = outcome.succeeded ? .acted(outcome.message) : .failed(outcome.message)
     }
 
-    /// Sends a transcript the matcher declined to the agent in the XPC helper.
+    /// Sends a transcript the matcher declined to whichever agent back end is
+    /// configured.
     private func runAgent(on text: String) async {
         store.state = .thinking(text)
         let started = Date()
-        let outcome = await XPCHelperClient.shared.runAgentCommand(text)
+        let outcome: Result<String, AgentCommandError>
+        switch Defaults[.agentBackend] {
+        case .anthropicAPI:
+            outcome = await runOwnedLoop(on: text)
+        case .claudeCLI:
+            outcome = await XPCHelperClient.shared.runAgentCommand(text)
+        }
         let elapsed = String(format: "%.1f", Date().timeIntervalSince(started))
 
         switch outcome {
@@ -305,6 +312,80 @@ final class VoiceInputManager {
             store.state = .failed(error.text)
         }
     }
+
+    /// The agent loop Brow owns, talking to the API with the user's own key.
+    ///
+    /// Typed actions run here in the app, where the managers live. Only
+    /// run_shell crosses to the helper, which screens it with the same gate
+    /// that screens the CLI path.
+    private func runOwnedLoop(on text: String) async -> Result<String, AgentCommandError> {
+        let provider = AnthropicProvider(
+            model: Defaults[.agentModel],
+            effort: Defaults[.agentEffort],
+            apiKey: { APIKeyStore.key(for: .anthropic) })
+
+        let loop = AgentLoop(
+            provider: provider,
+            runAction: { action in
+                let outcome = await ActionExecutor.run(action)
+                return outcome.succeeded ? .ok(outcome.message) : .failed(outcome.message)
+            },
+            runShell: { command in
+                switch await XPCHelperClient.shared.runGatedShellCommand(command) {
+                case let .success(output):
+                    // An empty result reads as a broken tool to the model, and
+                    // plenty of commands legitimately print nothing.
+                    return .ok(output.isEmpty ? "(no output)" : output)
+                case let .failure(error):
+                    return .failed(error.text)
+                }
+            })
+
+        // Say what it is doing rather than spinning: the agent path runs for
+        // seconds, and silence is indistinguishable from a hang.
+        loop.onProgress = { [weak self] note in
+            Task { @MainActor in self?.store.state = .thinking(note) }
+        }
+
+        do {
+            let outcome = try await loop.run(transcript: text, system: Self.agentSystemPrompt)
+            VoiceAuditLog.record(event: "agent_tools", fields: [
+                "transcript": text,
+                "tools": outcome.toolsUsed.joined(separator: ","),
+                "turn_limit": outcome.stoppedAtTurnLimit ? "yes" : "no",
+            ])
+            guard !outcome.text.isEmpty else { return .failure(.message("No answer came back.")) }
+            return .success(outcome.text)
+        } catch is CancellationError {
+            return .failure(.message("Cancelled"))
+        } catch {
+            let message = (error as? ProviderError)?.errorDescription ?? error.localizedDescription
+            return .failure(.message(message))
+        }
+    }
+
+    /// Kept beside the loop rather than in the helper, because the helper's
+    /// copy describes the CLI's raw Bash tool and this one describes typed
+    /// tools. They are different surfaces and should not be one string.
+    private static let agentSystemPrompt = """
+    You are Jarvis, a voice assistant running in the macOS menu bar. The user \
+    spoke to you; your reply is shown in a small notch overlay and may be read \
+    aloud. Answer in at most two short sentences. No markdown, no lists, no \
+    preamble.
+
+    Use the tools to find things out and to act. Never answer a question about \
+    this Mac from memory or inference -- if you did not call a tool, you do not \
+    know. Prefer the typed tools over run_shell whenever one fits.
+
+    Never ask for permission and never ask whether you should proceed. A \
+    separate system screens every shell command: read-only ones run \
+    immediately, anything that changes state asks the user, and dangerous ones \
+    are refused. Gatekeeping is not your job, and asking in text strands the \
+    user with a question they cannot answer.
+
+    If a tool is denied or fails, say so plainly in one sentence. Do not guess, \
+    do not invent numbers, and do not work around a refusal.
+    """
 
     private func consumeResults(from transcriber: SpeechTranscriber) {
         resultsTask = Task { [weak self] in

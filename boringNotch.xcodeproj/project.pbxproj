@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B0CE0101AAAA000000000101 /* ModelProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CE0100AAAA000000000100 /* ModelProvider.swift */; };
+		B0CE0103AAAA000000000103 /* AnthropicProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CE0102AAAA000000000102 /* AnthropicProvider.swift */; };
+		B0CE0105AAAA000000000105 /* AgentTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CE0104AAAA000000000104 /* AgentTools.swift */; };
+		B0CE0107AAAA000000000107 /* AgentLoop.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CE0106AAAA000000000106 /* AgentLoop.swift */; };
+		B0CE0109AAAA000000000109 /* APIKeyStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CE0108AAAA000000000108 /* APIKeyStore.swift */; };
 		B0CE0021AAAA000000000021 /* CustomCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CE0020AAAA000000000020 /* CustomCommand.swift */; };
 		B0CE0023AAAA000000000023 /* CustomCommandRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CE0022AAAA000000000022 /* CustomCommandRunner.swift */; };
 		B0CE0025AAAA000000000025 /* ConfirmPrompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CE0024AAAA000000000024 /* ConfirmPrompt.swift */; };
@@ -211,6 +216,11 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		B0CE0100AAAA000000000100 /* ModelProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = agent/ModelProvider.swift; sourceTree = "<group>"; };
+		B0CE0102AAAA000000000102 /* AnthropicProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = agent/AnthropicProvider.swift; sourceTree = "<group>"; };
+		B0CE0104AAAA000000000104 /* AgentTools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = agent/AgentTools.swift; sourceTree = "<group>"; };
+		B0CE0106AAAA000000000106 /* AgentLoop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = agent/AgentLoop.swift; sourceTree = "<group>"; };
+		B0CE0108AAAA000000000108 /* APIKeyStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = agent/APIKeyStore.swift; sourceTree = "<group>"; };
 		B0CE0020AAAA000000000020 /* CustomCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomCommand.swift; sourceTree = "<group>"; };
 		B0CE0022AAAA000000000022 /* CustomCommandRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomCommandRunner.swift; sourceTree = "<group>"; };
 		B0CE0024AAAA000000000024 /* ConfirmPrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfirmPrompt.swift; sourceTree = "<group>"; };
@@ -649,6 +659,11 @@
 		147163B52C5D804B0068B555 /* managers */ = {
 			isa = PBXGroup;
 			children = (
+				B0CE0100AAAA000000000100 /* ModelProvider.swift */,
+				B0CE0102AAAA000000000102 /* AnthropicProvider.swift */,
+				B0CE0104AAAA000000000104 /* AgentTools.swift */,
+				B0CE0106AAAA000000000106 /* AgentLoop.swift */,
+				B0CE0108AAAA000000000108 /* APIKeyStore.swift */,
 				B0CE0024AAAA000000000024 /* ConfirmPrompt.swift */,
 				B0CE0022AAAA000000000022 /* CustomCommandRunner.swift */,
 				B0CE0016AAAA000000000016 /* BrowserTabs.swift */,
@@ -1051,6 +1066,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B0CE0101AAAA000000000101 /* ModelProvider.swift in Sources */,
+				B0CE0103AAAA000000000103 /* AnthropicProvider.swift in Sources */,
+				B0CE0105AAAA000000000105 /* AgentTools.swift in Sources */,
+				B0CE0107AAAA000000000107 /* AgentLoop.swift in Sources */,
+				B0CE0109AAAA000000000109 /* APIKeyStore.swift in Sources */,
 				B0CE0021AAAA000000000021 /* CustomCommand.swift in Sources */,
 				B0CE0023AAAA000000000023 /* CustomCommandRunner.swift in Sources */,
 				B0CE0025AAAA000000000025 /* ConfirmPrompt.swift in Sources */,

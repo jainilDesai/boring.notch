@@ -152,6 +152,27 @@ final class XPCHelperClient: NSObject {
         }
     }
 
+    /// Runs one command the agent loop asked for, screened by the gate in the
+    /// helper. A refusal comes back as a failure and is handed to the model as
+    /// a tool error, which is what lets it say "that was denied" instead of
+    /// retrying or making something up.
+    nonisolated func runGatedShellCommand(_ command: String) async -> Result<String, AgentCommandError> {
+        do {
+            let service = await MainActor.run { ensureRemoteService() }
+            return try await service.withContinuation { service, continuation in
+                service.runGatedShellCommand(command) { text, error in
+                    if let text {
+                        continuation.resume(returning: .success(text))
+                    } else {
+                        continuation.resume(returning: .failure(.message(error ?? "The command failed.")))
+                    }
+                }
+            }
+        } catch {
+            return .failure(.message("Couldn't reach the helper."))
+        }
+    }
+
     /// Runs a user-authored command from Settings > Commands.
     nonisolated func runUserShellCommand(_ command: String) async -> Result<String, AgentCommandError> {
         do {
