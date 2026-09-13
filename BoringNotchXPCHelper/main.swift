@@ -7,6 +7,31 @@
 
 import Foundation
 
+// Run as the agent's PreToolUse hook rather than as an XPC service.
+//
+// The hook script at ~/.brow/gate.sh execs this binary with --gate-decide,
+// which reads a payload on stdin and prints a decision. Handled before the
+// listener is created, because that call never returns.
+//
+// Reusing this binary rather than shipping a second one keeps the gate's
+// decision in exactly one place, and gives the hook a stable absolute path
+// inside the app bundle.
+if CommandLine.arguments.contains(AgentGate.hookFlag) {
+    AgentGate.runAsHook()
+}
+
+// Write the hook without waiting for an agent run to do it.
+//
+// install() records the absolute path of the binary that calls it, so the hook
+// must be written BY the helper it should point at. Running this from the
+// installed bundle is therefore the only correct way to repair or inspect the
+// gate by hand, and it is what the test suite uses.
+if CommandLine.arguments.contains(AgentGate.installFlag) {
+    AgentGate.install()
+    print(AgentGate.scriptURL.path)
+    exit(0)
+}
+
 class ServiceDelegate: NSObject, NSXPCListenerDelegate {
     
     /// This method is where the NSXPCListener configures, accepts, and resumes a new incoming NSXPCConnection.
