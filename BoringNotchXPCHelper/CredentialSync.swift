@@ -20,6 +20,10 @@ enum CredentialSync {
 
     private static let keychainService = "Claude Code-credentials"
 
+    /// The LaunchAgent that mirrors the keychain into the credentials file.
+    /// Must match the Label in com.jainildesai.brow.credentials.plist.
+    private static let mirrorLabel = "com.jainildesai.brow.credentials"
+
     /// Diagnostics land in a file because NSLog from this helper is not
     /// retrievable via `log show`.
     private static var logURL: URL {
@@ -66,20 +70,71 @@ enum CredentialSync {
         return Date().timeIntervalSince1970 * 1000 >= expiresAt - 60_000
     }
 
-    /// Deletes the credentials file when its token has expired.
+    /// Makes sure the credentials file is usable before the agent is launched.
     ///
-    /// The CLI prefers this file over the keychain, so a stale copy actively
-    /// shadows working keychain credentials. OAuth refresh tokens rotate — a
-    /// refresh by any other Claude Code session invalidates the copy — so an
-    /// expired file is worse than no file at all.
+    /// This helper cannot read the login keychain — `security` fails here, which
+    /// is the entire reason the file bridge exists — so when the token has
+    /// lapsed there is nothing it can do on its own. What it *can* do is ask
+    /// launchd to run the mirror LaunchAgent, which lives in the user's Aqua
+    /// session where the keychain is reachable, and wait briefly for the file to
+    /// reappear.
+    ///
+    /// This replaces deleting the expired file. Deleting was justified as
+    /// letting the CLI fall back to the keychain, but the CLI cannot reach the
+    /// keychain from here either, so it only ever left the agent with nothing —
+    /// and threw away the refresh token, the one thing that could have renewed
+    /// the session without a keychain read at all.
+    ///
+    /// The mirror runs on a 10-minute timer that does not fire while the Mac is
+    /// asleep. Waking the Mac and speaking inside that window is the common way
+    /// this used to fail, and it failed with "Not logged in" rather than
+    /// anything that pointed at a stale token.
     @discardableResult
-    static func removeIfExpired() -> Bool {
-        guard FileManager.default.fileExists(atPath: credentialsURL.path), needsSync() else {
-            return false
+    static func ensureUsable() -> Bool {
+        guard needsSync() else { return true }
+
+        note("credentials missing or expired — asking the mirror to run")
+        guard requestMirrorRun() else {
+            note("could not start the mirror LaunchAgent")
+            return FileManager.default.fileExists(atPath: credentialsURL.path)
         }
-        guard (try? FileManager.default.removeItem(at: credentialsURL)) != nil else { return false }
-        NSLog("[agent] removed expired credentials file so the keychain can be used")
-        return true
+
+        // The mirror is a keychain read and a small write. It finishes well
+        // inside this, and the budget is spent only on a cold path.
+        let deadline = Date().addingTimeInterval(5)
+        while Date() < deadline {
+            if !needsSync() {
+                note("credentials refreshed by the mirror")
+                return true
+            }
+            Thread.sleep(forTimeInterval: 0.2)
+        }
+
+        // The keychain itself can hold an expired token, if nothing has run the
+        // CLI in the user's session for longer than the token's lifetime. Go on
+        // anyway: the file still carries a refresh token, and the CLI renews
+        // itself from that more often than not. Failing here would turn a
+        // recoverable state into a certain failure.
+        note("mirror ran but the token is still stale — trying the CLI anyway")
+        return FileManager.default.fileExists(atPath: credentialsURL.path)
+    }
+
+    /// Asks launchd to run the credential mirror now, rather than waiting for
+    /// its next 10-minute tick.
+    private static func requestMirrorRun() -> Bool {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/bin/launchctl")
+        // -k restarts it if a run is already in flight, so a wedged run cannot
+        // leave this waiting on a tick that never comes.
+        process.arguments = [
+            "kickstart", "-k", "gui/\(getuid())/\(mirrorLabel)",
+        ]
+        process.standardOutput = FileHandle.nullDevice
+        process.standardError = FileHandle.nullDevice
+
+        do { try process.run() } catch { return false }
+        process.waitUntilExit()
+        return process.terminationStatus == 0
     }
 
     /// Copies the OAuth section from the keychain into the credentials file.

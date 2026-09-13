@@ -90,14 +90,17 @@ final class AgentRunner {
         // produce a second reply.
         let replied = ReplyOnce(completion)
 
-        // The on-disk token expires; refresh it from the keychain before we
-        // waste a launch discovering that.
+        // The on-disk token expires roughly every eight hours; make sure there
+        // is a usable one before we waste a launch discovering there is not.
+        //
         // Credentials are owned by the com.jainildesai.brow.credentials
         // LaunchAgent, which runs in the user's Aqua session — the only context
-        // that can read the login keychain. This helper cannot, so it does not
-        // try: an expired file is simply cleared so it cannot shadow anything,
-        // and the agent rewrites it within its refresh interval.
-        CredentialSync.removeIfExpired()
+        // that can read the login keychain. This helper cannot, so when the
+        // token has lapsed it asks launchd to run that agent now rather than
+        // waiting on its 10-minute tick, which does not fire while the Mac is
+        // asleep. Speaking shortly after waking used to land in exactly that
+        // window and fail with "Not logged in".
+        CredentialSync.ensureUsable()
         // Rewrite the hook and settings every run so the gate cannot drift from
         // the binary that depends on it.
         AgentGate.install()
