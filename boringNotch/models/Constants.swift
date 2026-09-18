@@ -399,9 +399,12 @@ extension Defaults.Keys {
     // as whoever installed it, so it cannot be the default for anyone else.
     static let agentBackend = Key<AgentBackend>("agentBackend", default: .claudeCLI)
     // Haiku by default: this answers someone standing in front of their Mac
-    // waiting, and a voice command is a short, concrete task. Opus is one
-    // field away in Settings for anyone who would rather have the judgement.
+    // waiting, and a voice command is a short, concrete task. A bigger model is
+    // one picker away for anyone who would rather have the judgement.
     static let agentModel = Key<String>("agentModel", default: "claude-haiku-4-5")
+    // Only used by the "Other (OpenAI-compatible)" back end -- the presets
+    // carry their own URL. A local Ollama goes here: http://localhost:11434/v1
+    static let agentBaseURL = Key<String>("agentBaseURL", default: "")
     // Only sent to models that accept it -- see AnthropicProvider.supportsEffort.
     static let agentEffort = Key<String>("agentEffort", default: "low")
     // The API key itself lives in the Keychain, never here. See APIKeyStore.
@@ -409,17 +412,72 @@ extension Defaults.Keys {
 
 /// Which back end answers a question the local matcher declined.
 ///
-/// The CLI path stays because it costs nothing to keep and some people already
-/// have it working. It cannot be the default, though: it authenticates as
-/// whoever installed it, which is the entire reason nobody else can run Brow.
+/// Everything except the CLI and Anthropic speaks the OpenAI chat-completions
+/// shape, so they are one provider with different base URLs. Presets exist
+/// because asking someone to remember
+/// `https://generativelanguage.googleapis.com/v1beta/openai` is not a feature.
+///
+/// The CLI stays because it costs nothing to keep and some people have it
+/// working. It cannot be the default: it authenticates as whoever installed it,
+/// which is the entire reason nobody else could run Brow.
 enum AgentBackend: String, Codable, CaseIterable, Defaults.Serializable {
     case claudeCLI
-    case anthropicAPI
+    case anthropic
+    case openRouter
+    case gemini
+    case custom
 
     var displayName: String {
         switch self {
         case .claudeCLI: return "Claude Code CLI"
-        case .anthropicAPI: return "Anthropic API key"
+        case .anthropic: return "Anthropic"
+        case .openRouter: return "OpenRouter — any model"
+        case .gemini: return "Google Gemini"
+        case .custom: return "Other (OpenAI-compatible)"
+        }
+    }
+
+    /// Nil for the two that are not OpenAI-compatible: the CLI is a
+    /// subprocess, and Anthropic has its own provider.
+    var baseURL: URL? {
+        switch self {
+        case .claudeCLI, .anthropic, .custom: return nil
+        case .openRouter: return URL(string: "https://openrouter.ai/api/v1")
+        case .gemini: return URL(string: "https://generativelanguage.googleapis.com/v1beta/openai")
+        }
+    }
+
+    /// Which keychain entry holds this back end's key. One per back end, so
+    /// switching does not overwrite a key you may want back.
+    var keyProvider: APIKeyStore.Provider? {
+        switch self {
+        case .claudeCLI: return nil
+        case .anthropic: return .anthropic
+        case .openRouter: return .openRouter
+        case .gemini: return .gemini
+        case .custom: return .custom
+        }
+    }
+
+    /// Where to get a key, shown in Settings. A dead end is worse than a link.
+    var signupURL: URL? {
+        switch self {
+        case .claudeCLI: return nil
+        case .anthropic: return URL(string: "https://console.anthropic.com/settings/keys")
+        case .openRouter: return URL(string: "https://openrouter.ai/keys")
+        case .gemini: return URL(string: "https://aistudio.google.com/apikey")
+        case .custom: return nil
+        }
+    }
+
+    /// A sensible model to start on, used when the live list has not loaded.
+    var defaultModel: String {
+        switch self {
+        case .claudeCLI: return ""
+        case .anthropic: return "claude-haiku-4-5"
+        case .openRouter: return "anthropic/claude-haiku-4.5"
+        case .gemini: return "gemini-flash-latest"
+        case .custom: return ""
         }
     }
 }

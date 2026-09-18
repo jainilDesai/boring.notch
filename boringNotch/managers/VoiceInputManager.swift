@@ -290,12 +290,24 @@ final class VoiceInputManager {
     private func runAgent(on text: String) async {
         store.state = .thinking(text)
         let started = Date()
+        let backend = Defaults[.agentBackend]
         let outcome: Result<String, AgentCommandError>
-        switch Defaults[.agentBackend] {
-        case .anthropicAPI:
-            outcome = await runOwnedLoop(on: text)
-        case .claudeCLI:
+        if backend == .claudeCLI {
             outcome = await XPCHelperClient.shared.runAgentCommand(text)
+        } else if let provider = AgentProviderFactory.make(
+            backend: backend,
+            model: Defaults[.agentModel],
+            effort: Defaults[.agentEffort],
+            customBaseURL: Defaults[.agentBaseURL]
+        ) {
+            outcome = await runOwnedLoop(on: text, provider: provider)
+        } else {
+            // Configured to use an API back end that is not set up. Say which
+            // thing is missing rather than failing as "no answer".
+            outcome = .failure(.message(
+                backend == .custom
+                    ? "Set a server URL for \(backend.displayName) in Settings."
+                    : "\(backend.displayName) isn't set up. Add a key in Settings."))
         }
         let elapsed = String(format: "%.1f", Date().timeIntervalSince(started))
 
@@ -318,12 +330,10 @@ final class VoiceInputManager {
     /// Typed actions run here in the app, where the managers live. Only
     /// run_shell crosses to the helper, which screens it with the same gate
     /// that screens the CLI path.
-    private func runOwnedLoop(on text: String) async -> Result<String, AgentCommandError> {
-        let provider = AnthropicProvider(
-            model: Defaults[.agentModel],
-            effort: Defaults[.agentEffort],
-            apiKey: { APIKeyStore.key(for: .anthropic) })
-
+    private func runOwnedLoop(
+        on text: String,
+        provider: ModelProvider
+    ) async -> Result<String, AgentCommandError> {
         let loop = AgentLoop(
             provider: provider,
             runAction: { action in

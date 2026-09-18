@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B0CE0201AAAA000000000201 /* OpenAICompatibleProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CE0200AAAA000000000200 /* OpenAICompatibleProvider.swift */; };
+		B0CE0203AAAA000000000203 /* ModelCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CE0202AAAA000000000202 /* ModelCatalog.swift */; };
+		B0CE0211AAAA000000000211 /* AgentProviderFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CE0210AAAA000000000210 /* AgentProviderFactory.swift */; };
 		B0CE0101AAAA000000000101 /* ModelProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CE0100AAAA000000000100 /* ModelProvider.swift */; };
 		B0CE0103AAAA000000000103 /* AnthropicProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CE0102AAAA000000000102 /* AnthropicProvider.swift */; };
 		B0CE0105AAAA000000000105 /* AgentTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0CE0104AAAA000000000104 /* AgentTools.swift */; };
@@ -216,6 +219,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		B0CE0200AAAA000000000200 /* OpenAICompatibleProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = agent/OpenAICompatibleProvider.swift; sourceTree = "<group>"; };
+		B0CE0202AAAA000000000202 /* ModelCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = agent/ModelCatalog.swift; sourceTree = "<group>"; };
+		B0CE0210AAAA000000000210 /* AgentProviderFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = agent/AgentProviderFactory.swift; sourceTree = "<group>"; };
 		B0CE0100AAAA000000000100 /* ModelProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = agent/ModelProvider.swift; sourceTree = "<group>"; };
 		B0CE0102AAAA000000000102 /* AnthropicProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = agent/AnthropicProvider.swift; sourceTree = "<group>"; };
 		B0CE0104AAAA000000000104 /* AgentTools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = agent/AgentTools.swift; sourceTree = "<group>"; };
@@ -660,6 +666,9 @@
 			isa = PBXGroup;
 			children = (
 				B0CE0100AAAA000000000100 /* ModelProvider.swift */,
+				B0CE0210AAAA000000000210 /* AgentProviderFactory.swift */,
+				B0CE0200AAAA000000000200 /* OpenAICompatibleProvider.swift */,
+				B0CE0202AAAA000000000202 /* ModelCatalog.swift */,
 				B0CE0102AAAA000000000102 /* AnthropicProvider.swift */,
 				B0CE0104AAAA000000000104 /* AgentTools.swift */,
 				B0CE0106AAAA000000000106 /* AgentLoop.swift */,
@@ -1066,6 +1075,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B0CE0201AAAA000000000201 /* OpenAICompatibleProvider.swift in Sources */,
+				B0CE0203AAAA000000000203 /* ModelCatalog.swift in Sources */,
+				B0CE0211AAAA000000000211 /* AgentProviderFactory.swift in Sources */,
 				B0CE0101AAAA000000000101 /* ModelProvider.swift in Sources */,
 				B0CE0103AAAA000000000103 /* AnthropicProvider.swift in Sources */,
 				B0CE0105AAAA000000000105 /* AgentTools.swift in Sources */,

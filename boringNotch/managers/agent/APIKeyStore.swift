@@ -24,12 +24,18 @@ enum APIKeyStore {
     /// the user may want back.
     enum Provider: String, CaseIterable {
         case anthropic
+        case openRouter
+        case gemini
+        case custom
 
         var service: String { "com.jainildesai.brow.\(rawValue).apikey" }
 
         var displayName: String {
             switch self {
             case .anthropic: return "Anthropic"
+            case .openRouter: return "OpenRouter"
+            case .gemini: return "Gemini"
+            case .custom: return "Custom"
             }
         }
     }
